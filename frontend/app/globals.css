@@ -1,0 +1,1048 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+/* Tailwind CSS v4 theme inline configuration */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-manrope), 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+/* Futuristic Tech Grid & Subtle Gradient Utilities */
+.tech-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+}
+
+.tech-radial-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 60%);
+}
+
+.tech-dot-pattern {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Velora Signature Dotted Technology Background
+   Subtle, professional blue dots on a clean light base with ambient brand glows
+   Applied consistently across: Home, About Us, School Programs, Our Services, Projects, Contact */
+.velora-tech-dotted-bg {
+  position: relative;
+  background-color: #ffffff;
+  background-image: 
+    radial-gradient(circle at 14% 12%, rgba(0, 71, 186, 0.045) 0%, transparent 45%),
+    radial-gradient(circle at 86% 28%, rgba(22, 163, 74, 0.035) 0%, transparent 45%),
+    radial-gradient(circle at 18% 65%, rgba(0, 71, 186, 0.035) 0%, transparent 45%),
+    radial-gradient(circle at 82% 85%, rgba(22, 163, 74, 0.03) 0%, transparent 42%),
+    radial-gradient(rgba(0, 71, 186, 0.13) 1.5px, transparent 1.5px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 32px 32px;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+}
+
+/* Ensure light content sections allow the dotted background to show through seamlessly */
+.velora-tech-dotted-bg > section.bg-white {
+  background-color: transparent !important;
+}
+
+.velora-tech-dotted-bg > section.bg-slate-50,
+.velora-tech-dotted-bg > section.bg-slate-50\/70,
+.velora-tech-dotted-bg > section.bg-slate-50\/80 {
+  background-color: rgba(248, 250, 252, 0.55) !important;
+}
+
+
+/* Velora KPI / Feature Cards: Premium Blue-and-Green Hover Effect */
+.velora-kpi-card {
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+/* Inner blue-green gradient wash across the entire card interior */
+.velora-kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #e8f1ff 0%, #edfcf4 100%);
+  opacity: 0;
+  transition: opacity 250ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure all card content remains crisp and interactive above decorative background */
+.velora-kpi-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+.velora-kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: transparent !important;
+  background: 
+    linear-gradient(135deg, #e8f1ff 0%, #edfcf4 100%) padding-box,
+    linear-gradient(135deg, #1764FF 0%, #00A878 100%) border-box !important;
+  box-shadow: 0 14px 30px -6px rgba(23, 100, 255, 0.16),
+              0 6px 18px -4px rgba(0, 168, 120, 0.12) !important;
+}
+
+.velora-kpi-card:hover::before {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .velora-kpi-card,
+  .velora-kpi-card::before {
+    transition: none !important;
+  }
+  .velora-kpi-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Velora Service Cards — School Programs & Services section    */
+/* ============================================================ */
+.velora-service-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.125rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 0 0 0 transparent;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease,
+    border-color 260ms ease;
+}
+
+/* Top accent bar — shows on hover via opacity */
+.velora-service-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1764FF 0%, #00A878 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  z-index: 3;
+}
+
+/* Inner ambient glow layer */
+.velora-service-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(23, 100, 255, 0.04) 0%, rgba(0, 168, 120, 0.04) 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* All content sits above pseudo layers */
+.velora-service-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Hover state ── */
+.velora-service-card:hover {
+  transform: translateY(-4px);
+  border-color: transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(135deg, #1764FF 0%, #00A878 100%) border-box;
+  box-shadow:
+    0 16px 36px -8px rgba(23, 100, 255, 0.15),
+    0 6px 18px -4px rgba(0, 168, 120, 0.10);
+}
+
+.velora-service-card:hover::before {
+  opacity: 1;
+}
+
+.velora-service-card:hover::after {
+  opacity: 1;
+}
+
+/* Icon badge lift on hover */
+.velora-service-card:hover .velora-svc-icon {
+  box-shadow: 0 4px 12px -2px rgba(23, 100, 255, 0.22);
+}
+
+/* CTA link arrow animation on hover */
+.velora-service-card:hover .velora-svc-cta {
+  gap: 0.375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .velora-service-card,
+  .velora-service-card::before,
+  .velora-service-card::after {
+    transition: none !important;
+  }
+  .velora-service-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Velora Project Cards — Student Projects Gallery section      */
+/* ============================================================ */
+.velora-project-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.125rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease,
+    border-color 260ms ease;
+}
+
+/* Subtle top gradient accent bar — reveals on hover */
+.velora-project-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1764FF 0%, #00A878 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  z-index: 3;
+}
+
+/* Subtle inner ambient wash on hover (predominantly white with delicate blue-green tint) */
+.velora-project-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(23, 100, 255, 0.035) 0%, rgba(0, 168, 120, 0.035) 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure all content sits above ambient layer */
+.velora-project-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hover state */
+.velora-project-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(23, 100, 255, 0.35);
+  box-shadow:
+    0 14px 30px -6px rgba(23, 100, 255, 0.12),
+    0 6px 16px -4px rgba(0, 168, 120, 0.08);
+}
+
+.velora-project-card:hover::before {
+  opacity: 1;
+}
+
+.velora-project-card:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .velora-project-card,
+  .velora-project-card::before,
+  .velora-project-card::after {
+    transition: none !important;
+  }
+  .velora-project-card:hover {
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Velora Innovators Cards — Building Confident Innovators      */
+/* ============================================================ */
+.velora-innovator-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.125rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease,
+    border-color 260ms ease;
+}
+
+/* Subtle top gradient accent bar — reveals on hover */
+.velora-innovator-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1764FF 0%, #00A878 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  z-index: 3;
+}
+
+/* Subtle inner light blue-to-green background wash inside the card on hover */
+.velora-innovator-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(23, 100, 255, 0.06) 0%, rgba(0, 168, 120, 0.06) 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure all text and content remain crisp and interactive above decorative layers */
+.velora-innovator-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hover state */
+.velora-innovator-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(23, 100, 255, 0.35);
+  box-shadow:
+    0 14px 28px -6px rgba(23, 100, 255, 0.12),
+    0 6px 16px -4px rgba(0, 168, 120, 0.08);
+}
+
+.velora-innovator-card:hover::before {
+  opacity: 1;
+}
+
+.velora-innovator-card:hover::after {
+  opacity: 1;
+}
+
+.velora-innovator-card:hover .velora-innovator-num {
+  transform: scale(1.04);
+  box-shadow: 0 4px 10px -2px rgba(23, 100, 255, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .velora-innovator-card,
+  .velora-innovator-card::before,
+  .velora-innovator-card::after,
+  .velora-innovator-card .velora-innovator-num {
+    transition: none !important;
+  }
+  .velora-innovator-card:hover {
+    transform: none !important;
+  }
+  .velora-innovator-card:hover .velora-innovator-num {
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Velora Pathway Cards — Tailored Value section                */
+/* ============================================================ */
+.velora-pathway-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1.125rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition:
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms ease,
+    border-color 260ms ease;
+}
+
+/* Subtle top gradient accent bar — reveals on hover */
+.velora-pathway-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1764FF 0%, #00A878 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  z-index: 3;
+}
+
+/* Subtle inner light blue-to-green background wash inside the card on hover */
+.velora-pathway-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(23, 100, 255, 0.055) 0%, rgba(0, 168, 120, 0.055) 100%);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Ensure all text, icons, lists and links remain interactive above decorative layers */
+.velora-pathway-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Hover state */
+.velora-pathway-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(23, 100, 255, 0.35);
+  box-shadow:
+    0 14px 28px -6px rgba(23, 100, 255, 0.12),
+    0 6px 16px -4px rgba(0, 168, 120, 0.08);
+}
+
+.velora-pathway-card:hover::before {
+  opacity: 1;
+}
+
+.velora-pathway-card:hover::after {
+  opacity: 1;
+}
+
+.velora-pathway-card:hover .velora-pathway-icon {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px -2px rgba(23, 100, 255, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .velora-pathway-card,
+  .velora-pathway-card::before,
+  .velora-pathway-card::after,
+  .velora-pathway-card .velora-pathway-icon {
+    transition: none !important;
+  }
+  .velora-pathway-card:hover {
+    transform: none !important;
+  }
+  .velora-pathway-card:hover .velora-pathway-icon {
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Velora Homepage Professional Animations                      */
+/* Consistent with Blue-Green Brand Identity                    */
+/* ============================================================ */
+
+/* Hero Section Entrance Animations */
+@keyframes veloraHeroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes veloraAmbientGlowPulse {
+  0%, 100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+}
+
+.velora-hero-headline {
+  animation: veloraHeroFadeUp 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 60ms;
+  will-change: transform, opacity;
+}
+
+.velora-hero-desc {
+  animation: veloraHeroFadeUp 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 180ms;
+  will-change: transform, opacity;
+}
+
+.velora-hero-ctas {
+  animation: veloraHeroFadeUp 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 300ms;
+  will-change: transform, opacity;
+}
+
+.velora-hero-pillars {
+  animation: veloraHeroFadeUp 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 420ms;
+  will-change: transform, opacity;
+}
+
+.velora-hero-carousel {
+  animation: veloraHeroFadeUp 750ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 200ms;
+  will-change: transform, opacity;
+}
+
+.velora-ambient-glow {
+  animation: veloraAmbientGlowPulse 6s ease-in-out infinite;
+}
+
+/* Scroll-triggered Reveal Animations (Progressive Enhancement) */
+/* Default static state: Fully visible (SSR / fallback) */
+.velora-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+/* Applied by client JavaScript once observer is initialized */
+.velora-reveal-init {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Triggered when element enters viewport */
+.velora-reveal-init.velora-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger card container: individual child items */
+.velora-stagger-container > * {
+  opacity: 1;
+  transform: none;
+}
+
+.velora-stagger-init > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 550ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 550ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.velora-stagger-init.velora-revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect user's reduced-motion preference strictly across all homepage animations */
+@media (prefers-reduced-motion: reduce) {
+  .velora-hero-headline,
+  .velora-hero-desc,
+  .velora-hero-ctas,
+  .velora-hero-pillars,
+  .velora-hero-carousel,
+  .velora-ambient-glow,
+  .velora-reveal-init,
+  .velora-reveal-init.velora-revealed,
+  .velora-stagger-init > *,
+  .velora-stagger-init.velora-revealed > * {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Scoped Animation: Our Learning Philosophy & Innovation Cards */
+/* ============================================================ */
+.philosophy-cards-grid {
+  overflow-x: clip;
+}
+
+/* Progressive enhancement: default fully visible */
+.philosophy-card-left,
+.philosophy-card-right {
+  opacity: 1;
+  transform: none;
+}
+
+/* Initial hidden state active when JS observer initializes */
+.philosophy-anim-ready .philosophy-card-left {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.philosophy-anim-ready .philosophy-card-right {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 150ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 150ms;
+  will-change: opacity, transform;
+}
+
+/* Desktop & tablet: slide in from left (-80px) and right (80px) */
+@media (min-width: 768px) {
+  .philosophy-anim-ready .philosophy-card-left {
+    transform: translateX(-80px);
+  }
+  .philosophy-anim-ready .philosophy-card-right {
+    transform: translateX(80px);
+  }
+}
+
+/* Triggered state when section enters viewport */
+.philosophy-anim-ready.philosophy-visible .philosophy-card-left {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 250ms ease;
+}
+
+.philosophy-anim-ready.philosophy-visible .philosophy-card-right {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 150ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 150ms,
+              box-shadow 250ms ease;
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .philosophy-anim-ready .philosophy-card-left,
+  .philosophy-anim-ready .philosophy-card-right,
+  .philosophy-anim-ready.philosophy-visible .philosophy-card-left,
+  .philosophy-anim-ready.philosophy-visible .philosophy-card-right {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Scoped Animation: Why Schools Partner with Velora Cards      */
+/* ============================================================ */
+.partner-cards-grid {
+  overflow-x: clip;
+}
+
+/* Progressive enhancement: default fully visible */
+.partner-card-left-1,
+.partner-card-left-2,
+.partner-card-right-1,
+.partner-card-right-2 {
+  opacity: 1;
+  transform: none;
+}
+
+/* Initial hidden state active when JS observer initializes */
+.partner-anim-ready .partner-card-left-1,
+.partner-anim-ready .partner-card-left-2,
+.partner-anim-ready .partner-card-right-1,
+.partner-anim-ready .partner-card-right-2 {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: opacity, transform;
+}
+
+.partner-anim-ready .partner-card-left-1 {
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+}
+
+.partner-anim-ready .partner-card-left-2 {
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms;
+}
+
+.partner-anim-ready .partner-card-right-1 {
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+}
+
+.partner-anim-ready .partner-card-right-2 {
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms;
+}
+
+/* Desktop & tablet: Cards 1 & 2 from left (-70px), Cards 3 & 4 from right (70px) */
+@media (min-width: 640px) {
+  .partner-anim-ready .partner-card-left-1,
+  .partner-anim-ready .partner-card-left-2 {
+    transform: translateX(-70px);
+  }
+  .partner-anim-ready .partner-card-right-1,
+  .partner-anim-ready .partner-card-right-2 {
+    transform: translateX(70px);
+  }
+}
+
+/* Triggered state when section enters viewport */
+.partner-anim-ready.partner-visible .partner-card-left-1 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.partner-anim-ready.partner-visible .partner-card-left-2 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.partner-anim-ready.partner-visible .partner-card-right-1 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.partner-anim-ready.partner-visible .partner-card-right-2 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 800ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+/* Preserve card hover state seamlessly once visible */
+.partner-anim-ready.partner-visible .partner-card-left-1:hover,
+.partner-anim-ready.partner-visible .partner-card-left-2:hover,
+.partner-anim-ready.partner-visible .partner-card-right-1:hover,
+.partner-anim-ready.partner-visible .partner-card-right-2:hover {
+  transform: translateY(-4px);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .partner-anim-ready .partner-card-left-1,
+  .partner-anim-ready .partner-card-left-2,
+  .partner-anim-ready .partner-card-right-1,
+  .partner-anim-ready .partner-card-right-2,
+  .partner-anim-ready.partner-visible .partner-card-left-1,
+  .partner-anim-ready.partner-visible .partner-card-left-2,
+  .partner-anim-ready.partner-visible .partner-card-right-1,
+  .partner-anim-ready.partner-visible .partner-card-right-2 {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Scoped Animation: Built for Modern Educational Standards     */
+/* ============================================================ */
+.standards-cards-grid {
+  overflow-x: clip;
+}
+
+/* Progressive enhancement: default fully visible */
+.standards-card-left-1,
+.standards-card-left-2,
+.standards-card-right-1,
+.standards-card-right-2 {
+  opacity: 1;
+  transform: none;
+}
+
+/* Initial hidden state active when JS observer initializes */
+.standards-anim-ready .standards-card-left-1,
+.standards-anim-ready .standards-card-left-2,
+.standards-anim-ready .standards-card-right-1,
+.standards-anim-ready .standards-card-right-2 {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: opacity, transform;
+}
+
+/* Desktop & tablet: Cards 1 & 2 from left (-70px), Cards 3 & 4 from right (70px) */
+@media (min-width: 640px) {
+  .standards-anim-ready .standards-card-left-1,
+  .standards-anim-ready .standards-card-left-2 {
+    transform: translateX(-70px);
+  }
+  .standards-anim-ready .standards-card-right-1,
+  .standards-anim-ready .standards-card-right-2 {
+    transform: translateX(70px);
+  }
+}
+
+.standards-anim-ready .standards-card-left-1 {
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+}
+
+.standards-anim-ready .standards-card-left-2 {
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms;
+}
+
+.standards-anim-ready .standards-card-right-1 {
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms;
+}
+
+.standards-anim-ready .standards-card-right-2 {
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms;
+}
+
+/* Triggered state when section enters viewport */
+.standards-anim-ready.standards-visible .standards-card-left-1 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.standards-anim-ready.standards-visible .standards-card-left-2 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.standards-anim-ready.standards-visible .standards-card-right-1 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 0ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+.standards-anim-ready.standards-visible .standards-card-right-2 {
+  opacity: 1;
+  transform: translate(0, 0);
+  transition: opacity 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              transform 750ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+              box-shadow 250ms ease,
+              border-color 250ms ease;
+}
+
+/* Preserve card hover state seamlessly once visible */
+.standards-anim-ready.standards-visible .standards-card-left-1:hover,
+.standards-anim-ready.standards-visible .standards-card-left-2:hover,
+.standards-anim-ready.standards-visible .standards-card-right-1:hover,
+.standards-anim-ready.standards-visible .standards-card-right-2:hover {
+  transform: translateY(-4px);
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .standards-anim-ready .standards-card-left-1,
+  .standards-anim-ready .standards-card-left-2,
+  .standards-anim-ready .standards-card-right-1,
+  .standards-anim-ready .standards-card-right-2,
+  .standards-anim-ready.standards-visible .standards-card-left-1,
+  .standards-anim-ready.standards-visible .standards-card-left-2,
+  .standards-anim-ready.standards-visible .standards-card-right-1,
+  .standards-anim-ready.standards-visible .standards-card-right-2 {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================ */
+/* Scoped Animation: Grade-Wise Learning Pathways 2x2 Grid     */
+/* ============================================================ */
+.pathway-cards-grid {
+  overflow-x: clip;
+}
+
+/* Base state for progressive enhancement (SSR / fallback) */
+.pathway-card-tl,
+.pathway-card-tr,
+.pathway-card-bl,
+.pathway-card-br {
+  opacity: 1;
+  transform: none;
+}
+
+/* When client animation system is ready but not yet in view */
+.pathway-anim-ready:not(.pathway-visible) .pathway-card-tl,
+.pathway-anim-ready:not(.pathway-visible) .pathway-card-tr,
+.pathway-anim-ready:not(.pathway-visible) .pathway-card-bl,
+.pathway-anim-ready:not(.pathway-visible) .pathway-card-br {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+@media (min-width: 768px) {
+  .pathway-anim-ready:not(.pathway-visible) .pathway-card-tl,
+  .pathway-anim-ready:not(.pathway-visible) .pathway-card-bl {
+    transform: translateX(-60px);
+  }
+  .pathway-anim-ready:not(.pathway-visible) .pathway-card-tr,
+  .pathway-anim-ready:not(.pathway-visible) .pathway-card-br {
+    transform: translateX(60px);
+  }
+}
+
+/* Keyframes for Opposite-Direction 2x2 Entrance */
+@keyframes pathwaySlideMobile {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pathwaySlideLeftDesktop {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pathwaySlideRightDesktop {
+  from {
+    opacity: 0;
+    transform: translateX(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Triggered state when section enters viewport */
+.pathway-visible .pathway-card-tl {
+  animation: pathwaySlideMobile 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both;
+}
+
+.pathway-visible .pathway-card-tr {
+  animation: pathwaySlideMobile 800ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both;
+}
+
+.pathway-visible .pathway-card-bl {
+  animation: pathwaySlideMobile 800ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+.pathway-visible .pathway-card-br {
+  animation: pathwaySlideMobile 800ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both;
+}
+
+@media (min-width: 768px) {
+  .pathway-visible .pathway-card-tl {
+    animation-name: pathwaySlideLeftDesktop;
+  }
+  .pathway-visible .pathway-card-tr {
+    animation-name: pathwaySlideRightDesktop;
+  }
+  .pathway-visible .pathway-card-bl {
+    animation-name: pathwaySlideLeftDesktop;
+  }
+  .pathway-visible .pathway-card-br {
+    animation-name: pathwaySlideRightDesktop;
+  }
+}
+
+/* Preserve card hover state seamlessly once visible */
+.pathway-visible .pathway-card-tl:hover,
+.pathway-visible .pathway-card-tr:hover,
+.pathway-visible .pathway-card-bl:hover,
+.pathway-visible .pathway-card-br:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 300ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* Reduced-motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .pathway-cards-grid *,
+  .pathway-visible * {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+
+
+
