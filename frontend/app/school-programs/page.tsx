@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function SchoolProgramsPage() {
   const pathways = [
     {
-      level: 'Grades 1 – 3',
+      level: 'Grades KG – 3',
       title: 'Foundational Discovery',
       badge: 'Early Explorers',
       accentColor: 'blue',
