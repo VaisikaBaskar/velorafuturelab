@@ -1,520 +1,652 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 
 export default function RobotMascot() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isBlinking, setIsBlinking] = useState(false);
-  const [isHappy, setIsHappy] = useState(false);
-
-  // Motion state refs for 60fps smooth interpolation (lerp)
-  const targetX = useRef(0);
-  const targetY = useRef(0);
-  const currentX = useRef(0);
-  const currentY = useRef(0);
-  const isHovered = useRef(false);
-  const lastMouseMove = useRef(Date.now());
-  const rafId = useRef<number | null>(null);
-
-  // Direct DOM refs to avoid React re-renders on every animation frame
-  const headRef = useRef<HTMLDivElement>(null);
-  const eyesGroupRef = useRef<HTMLDivElement>(null);
-  const bodyRef = useRef<HTMLDivElement>(null);
-  const leftHandRef = useRef<HTMLDivElement>(null);
-  const rightHandRef = useRef<HTMLDivElement>(null);
-  const floatRef = useRef<HTMLDivElement>(null);
-  const shadowRef = useRef<HTMLDivElement>(null);
+  const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check reduced motion preference
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!mountRef.current) return;
 
-    // Mouse tracking handler
-    const handleMouseMove = (e: MouseEvent) => {
-      lastMouseMove.current = Date.now();
-      if (!containerRef.current) return;
+    const container = mountRef.current;
+    let width = container.clientWidth || 460;
+    let height = container.clientHeight || 520;
 
-      const rect = containerRef.current.getBoundingClientRect();
+    // ==============================================================
+    // 1. THREE.JS SCENE, CAMERA & RENDERER SETUP
+    // ==============================================================
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+    camera.position.set(0, 0.25, 4.6);
+    camera.lookAt(0, -0.05, 0);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+      powerPreference: 'high-performance',
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    container.appendChild(renderer.domElement);
+
+    // ==============================================================
+    // 2. STUDIO LIGHTING RIG
+    // ==============================================================
+    // Ambient fill
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+
+    // Key Light (Main soft white light from top-right)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    keyLight.position.set(3, 4, 3.5);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.bias = -0.001;
+    scene.add(keyLight);
+
+    // Fill Light (Soft cool blue light from left)
+    const fillLight = new THREE.DirectionalLight(0x70d6ff, 1.4);
+    fillLight.position.set(-3.5, 2, 2.5);
+    scene.add(fillLight);
+
+    // Rim / Back Light (Vivid cyan-blue edge sheen)
+    const rimLight = new THREE.DirectionalLight(0x00f0ff, 2.8);
+    rimLight.position.set(0, 3, -3);
+    scene.add(rimLight);
+
+    // Under-glow Bounce Light
+    const bounceLight = new THREE.DirectionalLight(0x0047ba, 0.8);
+    bounceLight.position.set(0, -3, 2);
+    scene.add(bounceLight);
+
+    // ==============================================================
+    // 3. PBR MATERIALS
+    // ==============================================================
+    // White Ceramic Robot Armor (glossy, clean, subtle reflection)
+    const whiteCeramicMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      roughness: 0.18,
+      metalness: 0.08,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.1,
+    });
+
+    // Metallic Silver Trim & Joints
+    const silverMetalMat = new THREE.MeshStandardMaterial({
+      color: 0xd8e2dc,
+      roughness: 0.22,
+      metalness: 0.85,
+    });
+
+    // Velora Tech Blue (Headphones, arm joints, details)
+    const veloraBlueMat = new THREE.MeshStandardMaterial({
+      color: 0x0052cc,
+      roughness: 0.25,
+      metalness: 0.35,
+    });
+
+    // Black Glossy Face Display
+    const blackVisorMat = new THREE.MeshPhysicalMaterial({
+      color: 0x050811,
+      roughness: 0.1,
+      metalness: 0.25,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+    });
+
+    // Glowing Cyan Eyes Material
+    const cyanEyeMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+    });
+
+    // Graduation Cap Navy Material
+    const capNavyMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1427,
+      roughness: 0.65,
+      metalness: 0.15,
+    });
+
+    // Graduation Tassel Purple Material
+    const tasselPurpleMat = new THREE.MeshStandardMaterial({
+      color: 0x8a2be2,
+      roughness: 0.45,
+      metalness: 0.2,
+    });
+
+    // Laptop Shell Dark Metal
+    const laptopBodyMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.28,
+      metalness: 0.8,
+    });
+
+    // Laptop Glowing Screen Display
+    const laptopScreenMat = new THREE.MeshStandardMaterial({
+      color: 0x030712,
+      emissive: 0x0047ba,
+      emissiveIntensity: 0.9,
+      roughness: 0.2,
+      metalness: 0.1,
+    });
+
+    // ==============================================================
+    // 4. HIERARCHICAL 3D MODEL ASSEMBLY
+    // ==============================================================
+    // Root Robot Object
+    const robot = new THREE.Group();
+    robot.position.y = -0.15;
+    scene.add(robot);
+
+    // --------------------------------------------------------------
+    // 4A. BODY GROUP
+    // --------------------------------------------------------------
+    const bodyGroup = new THREE.Group();
+    robot.add(bodyGroup);
+
+    // Torso / Chest (rounded ergonomic white body)
+    const torsoGeo = new THREE.SphereGeometry(0.58, 36, 32);
+    torsoGeo.scale(1.0, 1.15, 0.9);
+    const torso = new THREE.Mesh(torsoGeo, whiteCeramicMat);
+    torso.position.set(0, -0.45, -0.05);
+    torso.castShadow = true;
+    torso.receiveShadow = true;
+    bodyGroup.add(torso);
+
+    // Chest Arc Reactor / Emblem (Glowing Cyan Velora Core)
+    const arcRingGeo = new THREE.TorusGeometry(0.12, 0.02, 16, 32);
+    const arcRing = new THREE.Mesh(arcRingGeo, veloraBlueMat);
+    arcRing.position.set(0, -0.38, 0.43);
+    bodyGroup.add(arcRing);
+
+    const arcCoreGeo = new THREE.CircleGeometry(0.1, 32);
+    const arcCoreMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const arcCore = new THREE.Mesh(arcCoreGeo, arcCoreMat);
+    arcCore.position.set(0, -0.38, 0.435);
+    bodyGroup.add(arcCore);
+
+    // Neck Collar Base (Silver joint ring)
+    const neckCollarGeo = new THREE.CylinderGeometry(0.25, 0.28, 0.12, 32);
+    const neckCollar = new THREE.Mesh(neckCollarGeo, silverMetalMat);
+    neckCollar.position.set(0, 0.15, -0.02);
+    bodyGroup.add(neckCollar);
+
+    // Blue Neck Seam Ring
+    const neckSeamGeo = new THREE.TorusGeometry(0.27, 0.02, 16, 32);
+    const neckSeam = new THREE.Mesh(neckSeamGeo, veloraBlueMat);
+    neckSeam.position.set(0, 0.15, -0.02);
+    neckSeam.rotation.x = Math.PI / 2;
+    bodyGroup.add(neckSeam);
+
+    // Arms & Hands (positioned forward naturally typing on laptop)
+    const createArm = (isLeft: boolean) => {
+      const armGroup = new THREE.Group();
+      const side = isLeft ? -1 : 1;
+
+      // Shoulder gimbal sphere
+      const shoulderGeo = new THREE.SphereGeometry(0.14, 24, 24);
+      const shoulder = new THREE.Mesh(shoulderGeo, veloraBlueMat);
+      shoulder.position.set(side * 0.58, -0.28, 0.0);
+      armGroup.add(shoulder);
+
+      // Upper arm
+      const upperArmGeo = new THREE.CylinderGeometry(0.09, 0.08, 0.32, 20);
+      const upperArm = new THREE.Mesh(upperArmGeo, whiteCeramicMat);
+      upperArm.position.set(side * 0.65, -0.42, 0.12);
+      upperArm.rotation.x = Math.PI / 4;
+      upperArm.rotation.z = side * -0.25;
+      armGroup.add(upperArm);
+
+      // Elbow joint
+      const elbowGeo = new THREE.SphereGeometry(0.09, 20, 20);
+      const elbow = new THREE.Mesh(elbowGeo, silverMetalMat);
+      elbow.position.set(side * 0.69, -0.54, 0.24);
+      armGroup.add(elbow);
+
+      // Forearm reaching forward to laptop
+      const forearmGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.34, 20);
+      const forearm = new THREE.Mesh(forearmGeo, whiteCeramicMat);
+      forearm.position.set(side * 0.52, -0.62, 0.44);
+      forearm.rotation.x = Math.PI / 2.3;
+      forearm.rotation.y = side * 0.35;
+      forearm.rotation.z = side * -0.2;
+      armGroup.add(forearm);
+
+      // Hand resting on keyboard
+      const handGeo = new THREE.SphereGeometry(0.09, 20, 16);
+      handGeo.scale(1.0, 0.65, 1.2);
+      const hand = new THREE.Mesh(handGeo, whiteCeramicMat);
+      hand.position.set(side * 0.34, -0.68, 0.62);
+      armGroup.add(hand);
+
+      return armGroup;
+    };
+
+    bodyGroup.add(createArm(true));
+    bodyGroup.add(createArm(false));
+
+    // --------------------------------------------------------------
+    // 4B. LAPTOP GROUP (In front of robot)
+    // --------------------------------------------------------------
+    const laptopGroup = new THREE.Group();
+    laptopGroup.position.set(0, -0.74, 0.62);
+    robot.add(laptopGroup);
+
+    // Laptop Base
+    const laptopBaseGeo = new THREE.BoxGeometry(0.85, 0.03, 0.55);
+    const laptopBase = new THREE.Mesh(laptopBaseGeo, laptopBodyMat);
+    laptopBase.receiveShadow = true;
+    laptopGroup.add(laptopBase);
+
+    // Keyboard recess
+    const keyboardGeo = new THREE.BoxGeometry(0.72, 0.005, 0.34);
+    const keyboardMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.5 });
+    const keyboard = new THREE.Mesh(keyboardGeo, keyboardMat);
+    keyboard.position.set(0, 0.018, -0.04);
+    laptopGroup.add(keyboard);
+
+    // Trackpad
+    const trackpadGeo = new THREE.BoxGeometry(0.24, 0.005, 0.12);
+    const trackpadMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.4 });
+    const trackpad = new THREE.Mesh(trackpadGeo, trackpadMat);
+    trackpad.position.set(0, 0.018, 0.18);
+    laptopGroup.add(trackpad);
+
+    // Laptop Screen Lid (Open at ~115 degrees)
+    const screenPivot = new THREE.Group();
+    screenPivot.position.set(0, 0.015, -0.27);
+    screenPivot.rotation.x = -Math.PI / 7;
+    laptopGroup.add(screenPivot);
+
+    const lidGeo = new THREE.BoxGeometry(0.85, 0.54, 0.025);
+    const lid = new THREE.Mesh(lidGeo, laptopBodyMat);
+    lid.position.set(0, 0.27, 0);
+    lid.castShadow = true;
+    screenPivot.add(lid);
+
+    // Screen bezel & display
+    const screenDisplayGeo = new THREE.PlaneGeometry(0.78, 0.46);
+    const screenDisplay = new THREE.Mesh(screenDisplayGeo, laptopScreenMat);
+    screenDisplay.position.set(0, 0.27, 0.014);
+    screenPivot.add(screenDisplay);
+
+    // Screen Tech Icon / Logo (Glowing small cyan robot logo on screen)
+    const screenLogoGeo = new THREE.RingGeometry(0.04, 0.07, 32);
+    const screenLogoMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+    const screenLogo = new THREE.Mesh(screenLogoGeo, screenLogoMat);
+    screenLogo.position.set(0, 0.27, 0.016);
+    screenPivot.add(screenLogo);
+
+    // --------------------------------------------------------------
+    // 4C. HEAD GROUP (With Neck Pivot)
+    // --------------------------------------------------------------
+    // CRITICAL: The HeadGroup's pivot point is strictly at the neck!
+    const headPivot = new THREE.Group();
+    headPivot.position.set(0, 0.26, 0.0);
+    robot.add(headPivot);
+
+    const headGroup = new THREE.Group();
+    headPivot.add(headGroup);
+
+    // Head Shell: Large friendly rounded dome
+    const headShellGeo = new THREE.SphereGeometry(0.72, 48, 36);
+    headShellGeo.scale(1.08, 0.94, 1.0);
+    const headShell = new THREE.Mesh(headShellGeo, whiteCeramicMat);
+    headShell.position.set(0, 0.48, 0);
+    headShell.castShadow = true;
+    headShell.receiveShadow = true;
+    headGroup.add(headShell);
+
+    // Black Glossy Face Display (Inset front curved visor)
+    const faceDisplayGeo = new THREE.SphereGeometry(0.64, 40, 32);
+    faceDisplayGeo.scale(0.92, 0.72, 0.42);
+    const faceDisplay = new THREE.Mesh(faceDisplayGeo, blackVisorMat);
+    faceDisplay.position.set(0, 0.48, 0.38);
+    faceDisplay.receiveShadow = true;
+    headGroup.add(faceDisplay);
+
+    // Animated Glowing Cyan Eyes
+    const leftEyeGroup = new THREE.Group();
+    const rightEyeGroup = new THREE.Group();
+
+    const createEyeMesh = () => {
+      // Rounded pill / capsule eye
+      const eyeGeo = new THREE.CapsuleGeometry(0.075, 0.11, 16, 24);
+      eyeGeo.scale(1.0, 1.0, 0.3);
+      const eyeMesh = new THREE.Mesh(eyeGeo, cyanEyeMat);
+      return eyeMesh;
+    };
+
+    const leftEye = createEyeMesh();
+    leftEyeGroup.position.set(-0.21, 0.52, 0.65);
+    leftEyeGroup.add(leftEye);
+    headGroup.add(leftEyeGroup);
+
+    const rightEye = createEyeMesh();
+    rightEyeGroup.position.set(0.21, 0.52, 0.65);
+    rightEyeGroup.add(rightEye);
+    headGroup.add(rightEyeGroup);
+
+    // Cute Small Eye Pupils / Inner Specular Highlights
+    const pupilGeo = new THREE.CircleGeometry(0.025, 16);
+    const pupilMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const leftPupil = new THREE.Mesh(pupilGeo, pupilMat);
+    leftPupil.position.set(-0.015, 0.045, 0.02);
+    leftEyeGroup.add(leftPupil);
+
+    const rightPupil = new THREE.Mesh(pupilGeo, pupilMat);
+    rightPupil.position.set(-0.015, 0.045, 0.02);
+    rightEyeGroup.add(rightPupil);
+
+    // Blue Headphones (Left & Right Ear Pods)
+    const createHeadphone = (isLeft: boolean) => {
+      const hpGroup = new THREE.Group();
+      const side = isLeft ? -1 : 1;
+
+      // Outer cup cylinder
+      const cupGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.12, 32);
+      const cup = new THREE.Mesh(cupGeo, veloraBlueMat);
+      cup.rotation.z = Math.PI / 2;
+      cup.position.set(side * 0.78, 0.48, 0.0);
+      cup.castShadow = true;
+      hpGroup.add(cup);
+
+      // Inner silver ring
+      const ringGeo = new THREE.TorusGeometry(0.18, 0.02, 16, 32);
+      const ring = new THREE.Mesh(ringGeo, silverMetalMat);
+      ring.rotation.y = Math.PI / 2;
+      ring.position.set(side * 0.84, 0.48, 0.0);
+      hpGroup.add(ring);
+
+      // Cyan illuminated center circle
+      const cyanDiscGeo = new THREE.CircleGeometry(0.12, 32);
+      const cyanDiscMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+      const cyanDisc = new THREE.Mesh(cyanDiscGeo, cyanDiscMat);
+      cyanDisc.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+      cyanDisc.position.set(side * 0.845, 0.48, 0.0);
+      hpGroup.add(cyanDisc);
+
+      return hpGroup;
+    };
+
+    headGroup.add(createHeadphone(true));
+    headGroup.add(createHeadphone(false));
+
+    // Headphone connecting arch band across bottom of cap
+    const archGeo = new THREE.TorusGeometry(0.72, 0.035, 16, 48, Math.PI);
+    const arch = new THREE.Mesh(archGeo, veloraBlueMat);
+    arch.position.set(0, 0.54, 0);
+    arch.rotation.z = Math.PI;
+    headGroup.add(arch);
+
+    // --------------------------------------------------------------
+    // 4D. GRADUATION CAP & PURPLE TASSEL
+    // --------------------------------------------------------------
+    const capGroup = new THREE.Group();
+    capGroup.position.set(0, 1.14, -0.05);
+    capGroup.rotation.x = -0.08;
+    headGroup.add(capGroup);
+
+    // Skull cap base ring fitting head curve
+    const capBaseGeo = new THREE.CylinderGeometry(0.48, 0.54, 0.16, 32);
+    const capBase = new THREE.Mesh(capBaseGeo, capNavyMat);
+    capBase.position.y = -0.06;
+    capGroup.add(capBase);
+
+    // Flat Diamond Mortarboard
+    const mortarboardGeo = new THREE.BoxGeometry(1.22, 0.035, 1.22);
+    const mortarboard = new THREE.Mesh(mortarboardGeo, capNavyMat);
+    mortarboard.rotation.y = Math.PI / 4;
+    mortarboard.castShadow = true;
+    mortarboard.receiveShadow = true;
+    capGroup.add(mortarboard);
+
+    // Center Gold/Navy Cap Button
+    const capButtonGeo = new THREE.CylinderGeometry(0.06, 0.07, 0.03, 20);
+    const capButtonMat = new THREE.MeshStandardMaterial({
+      color: 0x0047ba,
+      metalness: 0.5,
+      roughness: 0.3,
+    });
+    const capButton = new THREE.Mesh(capButtonGeo, capButtonMat);
+    capButton.position.y = 0.03;
+    capGroup.add(capButton);
+
+    // Tassel Group
+    const tasselGroup = new THREE.Group();
+    tasselGroup.position.set(0, 0.03, 0);
+    capGroup.add(tasselGroup);
+
+    // Tassel Ribbon String (draping to side corner)
+    const ribbonCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.02, 0),
+      new THREE.Vector3(0.35, 0.02, 0.35),
+      new THREE.Vector3(0.55, -0.08, 0.55),
+      new THREE.Vector3(0.58, -0.32, 0.58),
+    ]);
+    const ribbonGeo = new THREE.TubeGeometry(ribbonCurve, 20, 0.012, 8, false);
+    const ribbonMesh = new THREE.Mesh(ribbonGeo, tasselPurpleMat);
+    tasselGroup.add(ribbonMesh);
+
+    // Purple Hanging Tassel Fringe (cylinder/cone)
+    const tasselFringeGeo = new THREE.ConeGeometry(0.05, 0.18, 16);
+    tasselFringeGeo.rotateX(Math.PI);
+    const tasselFringe = new THREE.Mesh(tasselFringeGeo, tasselPurpleMat);
+    tasselFringe.position.set(0.58, -0.42, 0.58);
+    tasselGroup.add(tasselFringe);
+
+    // Soft Ambient Floor Shadow (Realistic contact shadow on ground)
+    const floorShadowGeo = new THREE.PlaneGeometry(2.4, 2.4);
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 128;
+    shadowCanvas.height = 128;
+    const sCtx = shadowCanvas.getContext('2d');
+    if (sCtx) {
+      const grad = sCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      grad.addColorStop(0, 'rgba(0, 71, 186, 0.32)');
+      grad.addColorStop(0.35, 'rgba(15, 23, 42, 0.18)');
+      grad.addColorStop(0.7, 'rgba(15, 23, 42, 0.04)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      sCtx.fillStyle = grad;
+      sCtx.fillRect(0, 0, 128, 128);
+    }
+    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+    const floorShadowMat = new THREE.MeshBasicMaterial({
+      map: shadowTex,
+      transparent: true,
+      depthWrite: false,
+    });
+    const floorShadow = new THREE.Mesh(floorShadowGeo, floorShadowMat);
+    floorShadow.rotation.x = -Math.PI / 2;
+    floorShadow.position.set(0, -0.88, 0.2);
+    scene.add(floorShadow);
+
+    // ==============================================================
+    // 5. INTERACTIVE FULL HEAD MOUSE TRACKING & ANIMATION LOOP
+    // ==============================================================
+    const targetRotation = { x: 0, y: 0 };
+    const currentRotation = { x: 0, y: 0 };
+    let isMouseActive = false;
+    let lastMouseMoveTime = performance.now();
+
+    // Mouse movement listener
+    const onMouseMove = (e: MouseEvent) => {
+      lastMouseMoveTime = performance.now();
+      isMouseActive = true;
+
+      const rect = container.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
-      // Calculate normalized offset from mascot center (-1 to +1)
-      const maxDistanceX = window.innerWidth / 1.4;
-      const maxDistanceY = window.innerHeight / 1.4;
+      // Calculate normalized offset relative to mascot center (-1 to +1)
+      const maxDistanceX = window.innerWidth / 1.3;
+      const maxDistanceY = window.innerHeight / 1.3;
 
-      const rawDx = (e.clientX - centerX) / maxDistanceX;
-      const rawDy = (e.clientY - centerY) / maxDistanceY;
+      const normX = (e.clientX - centerX) / maxDistanceX;
+      const normY = (e.clientY - centerY) / maxDistanceY;
 
-      // Clamp between -1 and 1
-      targetX.current = Math.max(-1, Math.min(1, rawDx));
-      targetY.current = Math.max(-1, Math.min(1, rawDy));
+      // Realistic head rotation limits:
+      // Yaw: ±30 degrees (0.52 radians)
+      // Pitch: ±22 degrees (0.38 radians)
+      const clampedX = Math.max(-1, Math.min(1, normX));
+      const clampedY = Math.max(-1, Math.min(1, normY));
+
+      targetRotation.y = clampedX * 0.52; // Mouse Left/Right -> Head Yaw
+      targetRotation.x = clampedY * 0.38; // Mouse Up/Down -> Head Pitch
     };
 
-    // Touch tracking for tablets and mobile
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0 && containerRef.current) {
-        lastMouseMove.current = Date.now();
+    // Touch support for tablets & mobile
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        lastMouseMoveTime = performance.now();
+        isMouseActive = true;
         const touch = e.touches[0];
-        const rect = containerRef.current.getBoundingClientRect();
+        const rect = container.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        const maxDistanceX = window.innerWidth / 1.2;
-        const maxDistanceY = window.innerHeight / 1.2;
+        const normX = (touch.clientX - centerX) / (window.innerWidth / 1.2);
+        const normY = (touch.clientY - centerY) / (window.innerHeight / 1.2);
 
-        const rawDx = (touch.clientX - centerX) / maxDistanceX;
-        const rawDy = (touch.clientY - centerY) / maxDistanceY;
-
-        targetX.current = Math.max(-1, Math.min(1, rawDx));
-        targetY.current = Math.max(-1, Math.min(1, rawDy));
+        targetRotation.y = Math.max(-1, Math.min(1, normX)) * 0.52;
+        targetRotation.x = Math.max(-1, Math.min(1, normY)) * 0.38;
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
 
-    // Blink timer (natural periodic blinking every 3.5 - 5 seconds)
-    let blinkTimeout: NodeJS.Timeout;
-    const scheduleNextBlink = () => {
-      const delay = 3200 + Math.random() * 2400;
-      blinkTimeout = setTimeout(() => {
-        setIsBlinking(true);
-        setTimeout(() => {
-          setIsBlinking(false);
-          // 25% chance of a quick double-blink
-          if (Math.random() < 0.25) {
-            setTimeout(() => {
-              setIsBlinking(true);
-              setTimeout(() => setIsBlinking(false), 120);
-            }, 160);
-          }
-          scheduleNextBlink();
-        }, 140);
-      }, delay);
-    };
-    scheduleNextBlink();
+    // Blink State
+    let blinkStartTime = 0;
+    let isBlinking = false;
+    let nextBlinkTime = performance.now() + 3000 + Math.random() * 2500;
 
-    // Main 60fps Animation Loop
-    let startTime = performance.now();
+    // Animation Loop
+    let animId: number;
+    const clock = new THREE.Clock();
 
-    const animate = (time: number) => {
-      const elapsed = (time - startTime) / 1000;
-      const idleTime = (Date.now() - lastMouseMove.current) / 1000;
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+      const now = performance.now();
 
-      // If user hasn't moved mouse for 2.2s, smoothly transition to gentle autonomous idle wander
-      if (idleTime > 2.2 && !isHovered.current) {
-        const idleWave = Math.sin(elapsed * 0.9);
-        const idlePitch = Math.cos(elapsed * 0.7);
-        targetX.current = idleWave * 0.45;
-        targetY.current = idlePitch * 0.25;
+      // Idle behavior: if mouse hasn't moved in 2.2 seconds, gently look around autonomously
+      if (now - lastMouseMoveTime > 2200) {
+        isMouseActive = false;
+        targetRotation.y = Math.sin(elapsed * 0.8) * 0.24;
+        targetRotation.x = Math.cos(elapsed * 0.6) * 0.12;
       }
 
-      // Linear interpolation (lerp) for ultra-smooth responsiveness
-      const lerpFactor = prefersReducedMotion ? 0.02 : 0.085;
-      currentX.current += (targetX.current - currentX.current) * lerpFactor;
-      currentY.current += (targetY.current - currentY.current) * lerpFactor;
+      // Smooth HeadGroup rotation interpolation (lerp)
+      currentRotation.y = THREE.MathUtils.lerp(currentRotation.y, targetRotation.y, 0.08);
+      currentRotation.x = THREE.MathUtils.lerp(currentRotation.x, targetRotation.x, 0.08);
 
-      const x = currentX.current;
-      const y = currentY.current;
+      // Rotate the complete HeadGroup assembly around its neck pivot!
+      headGroup.rotation.y = currentRotation.y;
+      headGroup.rotation.x = currentRotation.x;
+      headGroup.rotation.z = -currentRotation.y * 0.12; // subtle natural neck roll tilt
 
-      // Floating bobbing motion (sine wave)
-      const floatOffsetY = prefersReducedMotion ? 0 : Math.sin(elapsed * 1.8) * 12;
-      const floatTiltZ = prefersReducedMotion ? 0 : Math.sin(elapsed * 1.2) * 2;
+      // Body stays relatively stationary, with subtle micro-reaction
+      bodyGroup.rotation.y = currentRotation.y * 0.15;
+      bodyGroup.rotation.x = currentRotation.x * 0.08;
 
-      // 1. Overall mascot levitation
-      if (floatRef.current) {
-        floatRef.current.style.transform = `translateY(${floatOffsetY}px) rotateZ(${floatTiltZ}deg)`;
+      // Subtle body floating levitation (sine wave)
+      const floatOffset = Math.sin(elapsed * 1.8) * 0.045;
+      robot.position.y = -0.15 + floatOffset;
+
+      // Subtle graduation tassel sway with head movement
+      tasselGroup.rotation.z = Math.sin(elapsed * 2.2) * 0.06 - currentRotation.y * 0.35;
+      tasselGroup.rotation.x = Math.cos(elapsed * 1.9) * 0.05 + currentRotation.x * 0.25;
+
+      // Eye blinking animation
+      if (now > nextBlinkTime && !isBlinking) {
+        isBlinking = true;
+        blinkStartTime = now;
       }
 
-      // 2. Soft floor shadow reactivity (expands when closer, contracts when higher)
-      if (shadowRef.current) {
-        const shadowScale = 1 - (floatOffsetY / 12) * 0.12;
-        const shadowOpacity = 0.45 - (floatOffsetY / 12) * 0.1;
-        shadowRef.current.style.transform = `scale(${shadowScale}) translateX(${x * 15}px)`;
-        shadowRef.current.style.opacity = `${shadowOpacity}`;
+      if (isBlinking) {
+        const blinkProgress = (now - blinkStartTime) / 140; // 140ms blink
+        if (blinkProgress >= 1) {
+          isBlinking = false;
+          leftEyeGroup.scale.y = 1;
+          rightEyeGroup.scale.y = 1;
+          // Schedule next blink in 3.5 - 6.0 seconds (with 25% chance of quick double-blink)
+          const doubleBlink = Math.random() < 0.25;
+          nextBlinkTime = now + (doubleBlink ? 200 : 3500 + Math.random() * 2500);
+        } else {
+          // Smooth squash down and open
+          const eyeScale = Math.max(0.08, Math.sin(blinkProgress * Math.PI * 2 + Math.PI / 2) * 0.46 + 0.54);
+          leftEyeGroup.scale.y = eyeScale;
+          rightEyeGroup.scale.y = eyeScale;
+        }
       }
 
-      // 3. Head 3D Rotation (Yaw, Pitch, Roll)
-      if (headRef.current) {
-        const headYaw = x * 26; // rotateY
-        const headPitch = -y * 20; // rotateX
-        const headRoll = x * 7; // rotateZ
-        const headTransX = x * 10;
-        const headTransY = y * 8;
-        headRef.current.style.transform = `translate3d(${headTransX}px, ${headTransY}px, 20px) rotateY(${headYaw}deg) rotateX(${headPitch}deg) rotateZ(${headRoll}deg)`;
-      }
-
-      // 4. Digital Eyes Tracking inside Visor
-      if (eyesGroupRef.current) {
-        const eyeX = x * 16;
-        const eyeY = y * 11;
-        eyesGroupRef.current.style.transform = `translate3d(${eyeX}px, ${eyeY}px, 15px)`;
-      }
-
-      // 5. Body / Torso follows with anatomical lag (about 35% of head motion)
-      if (bodyRef.current) {
-        const bodyYaw = x * 10;
-        const bodyPitch = -y * 8;
-        const bodyRoll = x * 3;
-        bodyRef.current.style.transform = `rotateY(${bodyYaw}deg) rotateX(${bodyPitch}deg) rotateZ(${bodyRoll}deg)`;
-      }
-
-      // 6. Floating Hands Inertia & Reactivity
-      if (leftHandRef.current) {
-        const handFloat = Math.sin(elapsed * 2.2 + 0.8) * 6;
-        const handX = -12 + x * 8;
-        const handY = handFloat + y * 12;
-        const handRot = -x * 12 + Math.sin(elapsed * 1.5) * 4;
-        leftHandRef.current.style.transform = `translate3d(${handX}px, ${handY}px, 30px) rotateZ(${handRot}deg)`;
-      }
-
-      if (rightHandRef.current) {
-        const handFloat = Math.cos(elapsed * 2.2) * 6;
-        const handX = 12 + x * 8;
-        const handY = handFloat + y * 12;
-        const handRot = -x * 12 + Math.cos(elapsed * 1.5) * 4;
-        rightHandRef.current.style.transform = `translate3d(${handX}px, ${handY}px, 30px) rotateZ(${handRot}deg)`;
-      }
-
-      rafId.current = requestAnimationFrame(animate);
+      renderer.render(scene, camera);
     };
 
-    rafId.current = requestAnimationFrame(animate);
+    animate();
 
+    // ==============================================================
+    // 6. RESIZE OBSERVER
+    // ==============================================================
+    const handleResize = () => {
+      if (!container) return;
+      width = container.clientWidth || 460;
+      height = container.clientHeight || 520;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    // ==============================================================
+    // 7. CLEANUP
+    // ==============================================================
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('touchmove', handleTouchMove);
-      if (blinkTimeout) clearTimeout(blinkTimeout);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('touchmove', onTouchMove);
+      resizeObserver.disconnect();
+
+      // Dispose Three.js objects
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m) => m.dispose());
+          } else if (obj.material) {
+            obj.material.dispose();
+          }
+        }
+      });
+
+      renderer.dispose();
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
     };
   }, []);
 
   return (
     <div
-      ref={containerRef}
-      onMouseEnter={() => {
-        isHovered.current = true;
-        setIsHappy(true);
-      }}
-      onMouseLeave={() => {
-        isHovered.current = false;
-        setIsHappy(false);
-      }}
+      ref={mountRef}
       className="relative w-full max-w-[460px] lg:max-w-[500px] h-[440px] sm:h-[480px] lg:h-[520px] mx-auto flex items-center justify-center select-none"
       style={{
-        perspective: '1200px',
         background: 'transparent',
       }}
       aria-label="Interactive 3D Robot Mascot"
       role="img"
-    >
-      {/* ============================================================== */}
-      {/* FLOATING ROOT RIG (Natural Levitating Entity)                   */}
-      {/* ============================================================== */}
-      <div
-        ref={floatRef}
-        className="relative w-[340px] h-[440px] sm:w-[380px] sm:h-[480px] flex flex-col items-center justify-center will-change-transform"
-        style={{
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        {/* ========================================================== */}
-        {/* TOP ANTENNA & ENERGY BEACON                                */}
-        {/* ========================================================== */}
-        <div
-          className="relative z-30 flex flex-col items-center -mb-2"
-          style={{ transform: 'translateZ(25px)' }}
-        >
-          {/* Pulsing Blue Beacon Sphere */}
-          <div className="relative w-5 h-5 rounded-full bg-gradient-to-tr from-[#0055ff] via-[#00d4ff] to-[#e0f9ff] shadow-[0_0_16px_#00d4ff,0_0_30px_rgba(0,180,255,0.7)] animate-pulse flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-white blur-[0.5px]" />
-          </div>
-          {/* Metallic Antenna Stem */}
-          <div className="w-1.5 h-6 bg-gradient-to-r from-slate-400 via-slate-200 to-slate-400 rounded-full shadow-inner -mt-1" />
-          {/* Antenna Base Collar */}
-          <div className="w-6 h-2 bg-gradient-to-r from-slate-500 via-slate-300 to-slate-500 rounded-full shadow-sm -mt-0.5 border border-slate-300" />
-        </div>
-
-        {/* ========================================================== */}
-        {/* 3D ROBOT HEAD                                              */}
-        {/* ========================================================== */}
-        <div
-          ref={headRef}
-          className="relative z-20 w-[240px] h-[175px] sm:w-[270px] sm:h-[195px] will-change-transform flex items-center justify-center cursor-pointer transition-[filter] duration-300 hover:brightness-105"
-          style={{
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          {/* Side Cyber-Ears / Audio Sensor Pods */}
-          {/* Left Ear */}
-          <div
-            className="absolute -left-3.5 top-1/2 -translate-y-1/2 w-6 h-14 rounded-l-2xl bg-gradient-to-r from-slate-400 via-slate-200 to-slate-300 border border-slate-300/80 shadow-[-4px_2px_10px_rgba(0,0,0,0.15)] flex items-center justify-center"
-            style={{ transform: 'translateZ(-10px)' }}
-          >
-            <div className="w-2 h-8 rounded-full bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]" />
-          </div>
-
-          {/* Right Ear */}
-          <div
-            className="absolute -right-3.5 top-1/2 -translate-y-1/2 w-6 h-14 rounded-r-2xl bg-gradient-to-l from-slate-400 via-slate-200 to-slate-300 border border-slate-300/80 shadow-[4px_2px_10px_rgba(0,0,0,0.15)] flex items-center justify-center"
-            style={{ transform: 'translateZ(-10px)' }}
-          >
-            <div className="w-2 h-8 rounded-full bg-[#00d4ff] shadow-[0_0_8px_#00d4ff]" />
-          </div>
-
-          {/* Outer Head Shell (Pearl White Ceramic & Brushed Silver Edge) */}
-          <div
-            className="relative w-full h-full rounded-[65px] p-2.5 sm:p-3 shadow-[0_20px_45px_-12px_rgba(0,71,186,0.22),0_10px_25px_-8px_rgba(15,23,42,0.18)]"
-            style={{
-              background:
-                'linear-gradient(145deg, #ffffff 0%, #f4f7fb 45%, #e1e9f2 85%, #cbd5e1 100%)',
-              border: '2px solid rgba(255, 255, 255, 0.9)',
-            }}
-          >
-            {/* Top Gloss Specular Highlight */}
-            <div
-              className="absolute top-2 left-6 right-6 h-12 rounded-[50px] opacity-75 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 75%)',
-              }}
-            />
-
-            {/* Dark Curved Glass Visor (The Screen Face) */}
-            <div
-              className="relative w-full h-full rounded-[50px] overflow-hidden flex items-center justify-center border border-slate-700/60 shadow-[inset_0_4px_16px_rgba(0,0,0,0.85),0_0_15px_rgba(0,180,255,0.15)]"
-              style={{
-                background:
-                  'radial-gradient(ellipse at 50% 40%, #0d1726 0%, #080e18 65%, #030710 100%)',
-              }}
-            >
-              {/* Glass Visor Top Diagonal Gloss Reflection */}
-              <div
-                className="absolute -top-12 -left-8 w-44 h-48 rounded-full rotate-45 pointer-events-none opacity-25"
-                style={{
-                  background:
-                    'linear-gradient(to bottom, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 65%)',
-                }}
-              />
-
-              {/* Visor Subtle Curved Ambient Grid Lines */}
-              <div
-                className="absolute inset-0 opacity-15 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at center, #00d4ff 1px, transparent 1px)',
-                  backgroundSize: '16px 16px',
-                }}
-              />
-
-              {/* ==================================================== */}
-              {/* INTERACTIVE GLOWING ELECTRIC BLUE EYES               */}
-              {/* ==================================================== */}
-              <div
-                ref={eyesGroupRef}
-                className="relative flex items-center justify-center gap-7 sm:gap-9 will-change-transform z-10"
-              >
-                {/* Left Eye */}
-                <div
-                  className={`relative transition-all duration-150 ease-out ${
-                    isBlinking
-                      ? 'scale-y-[0.08] opacity-70'
-                      : isHappy
-                      ? 'scale-y-90 scale-x-105'
-                      : 'scale-y-100 scale-x-100'
-                  }`}
-                >
-                  {/* Glowing Eye Capsule */}
-                  <div
-                    className={`w-9 h-11 sm:w-11 sm:h-13 rounded-full flex items-center justify-center ${
-                      isHappy
-                        ? 'rounded-t-full rounded-b-none h-8 sm:h-10 border-t-4 border-[#00f0ff]'
-                        : ''
-                    }`}
-                    style={{
-                      background: isHappy
-                        ? 'linear-gradient(180deg, #00f0ff 0%, #0066ff 100%)'
-                        : 'linear-gradient(180deg, #e0f9ff 0%, #00f0ff 40%, #0052cc 100%)',
-                      boxShadow:
-                        '0 0 14px #00f0ff, 0 0 28px rgba(0, 160, 255, 0.8), inset 0 0 6px #ffffff',
-                    }}
-                  >
-                    {/* Inner Pupil Specular Catchlight */}
-                    {!isHappy && !isBlinking && (
-                      <div className="w-2.5 h-3 rounded-full bg-white opacity-95 -mt-2 -ml-1 blur-[0.4px]" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Right Eye */}
-                <div
-                  className={`relative transition-all duration-150 ease-out ${
-                    isBlinking
-                      ? 'scale-y-[0.08] opacity-70'
-                      : isHappy
-                      ? 'scale-y-90 scale-x-105'
-                      : 'scale-y-100 scale-x-100'
-                  }`}
-                >
-                  {/* Glowing Eye Capsule */}
-                  <div
-                    className={`w-9 h-11 sm:w-11 sm:h-13 rounded-full flex items-center justify-center ${
-                      isHappy
-                        ? 'rounded-t-full rounded-b-none h-8 sm:h-10 border-t-4 border-[#00f0ff]'
-                        : ''
-                    }`}
-                    style={{
-                      background: isHappy
-                        ? 'linear-gradient(180deg, #00f0ff 0%, #0066ff 100%)'
-                        : 'linear-gradient(180deg, #e0f9ff 0%, #00f0ff 40%, #0052cc 100%)',
-                      boxShadow:
-                        '0 0 14px #00f0ff, 0 0 28px rgba(0, 160, 255, 0.8), inset 0 0 6px #ffffff',
-                    }}
-                  >
-                    {/* Inner Pupil Specular Catchlight */}
-                    {!isHappy && !isBlinking && (
-                      <div className="w-2.5 h-3 rounded-full bg-white opacity-95 -mt-2 -ml-1 blur-[0.4px]" />
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Expressive Cute Mouth / Status Pulse Bar */}
-              <div className="absolute bottom-4 flex items-center justify-center">
-                <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    isHappy
-                      ? 'w-10 bg-[#00f0ff] shadow-[0_0_12px_#00f0ff] rounded-b-xl h-2.5'
-                      : 'w-6 bg-[#00d4ff]/70 shadow-[0_0_8px_#00d4ff]'
-                  }`}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================== */}
-        {/* ARTICULATED COLLAR / NECK JOINT                            */}
-        {/* ========================================================== */}
-        <div
-          className="relative z-10 w-24 h-5 -mt-1.5 rounded-full bg-gradient-to-r from-slate-600 via-slate-400 to-slate-600 border border-slate-400/80 shadow-md flex items-center justify-center overflow-hidden"
-          style={{ transform: 'translateZ(10px)' }}
-        >
-          {/* Blue Cyber Fiber Seam */}
-          <div className="w-16 h-1 rounded-full bg-[#00d4ff] shadow-[0_0_6px_#00d4ff]" />
-        </div>
-
-        {/* ========================================================== */}
-        {/* 3D TORSO & BODY CHASSIS WITH FLOATING ARMS                 */}
-        {/* ========================================================== */}
-        <div className="relative w-full flex items-center justify-center -mt-2">
-          {/* Left Floating Hand */}
-          <div
-            ref={leftHandRef}
-            className="absolute -left-1 sm:-left-3 top-6 w-9 h-18 sm:w-11 sm:h-22 rounded-full will-change-transform z-20 flex flex-col items-center justify-center"
-            style={{
-              background:
-                'linear-gradient(160deg, #ffffff 0%, #f0f4f8 40%, #cbd5e1 100%)',
-              boxShadow:
-                '-4px 10px 20px rgba(0,71,186,0.18), inset 0 2px 4px rgba(255,255,255,0.9)',
-              border: '1.5px solid rgba(255,255,255,0.9)',
-            }}
-          >
-            {/* Palm Energy Core */}
-            <div className="w-3 h-3 rounded-full bg-gradient-to-tr from-[#0055ff] to-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />
-          </div>
-
-          {/* Right Floating Hand */}
-          <div
-            ref={rightHandRef}
-            className="absolute -right-1 sm:-right-3 top-6 w-9 h-18 sm:w-11 sm:h-22 rounded-full will-change-transform z-20 flex flex-col items-center justify-center"
-            style={{
-              background:
-                'linear-gradient(160deg, #ffffff 0%, #f0f4f8 40%, #cbd5e1 100%)',
-              boxShadow:
-                '4px 10px 20px rgba(0,71,186,0.18), inset 0 2px 4px rgba(255,255,255,0.9)',
-              border: '1.5px solid rgba(255,255,255,0.9)',
-            }}
-          >
-            {/* Palm Energy Core */}
-            <div className="w-3 h-3 rounded-full bg-gradient-to-tr from-[#0055ff] to-[#00f0ff] shadow-[0_0_8px_#00f0ff]" />
-          </div>
-
-          {/* Central Torso Shell */}
-          <div
-            ref={bodyRef}
-            className="relative w-[170px] h-[165px] sm:w-[195px] sm:h-[185px] rounded-[55px] p-3 shadow-[0_22px_45px_-10px_rgba(0,71,186,0.2),0_12px_24px_-8px_rgba(15,23,42,0.15)] will-change-transform flex flex-col items-center justify-between"
-            style={{
-              background:
-                'linear-gradient(165deg, #ffffff 0%, #f8fafc 35%, #e2e8f0 80%, #cbd5e1 100%)',
-              border: '2px solid rgba(255, 255, 255, 0.95)',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            {/* Specular Highlight on Shoulder Arch */}
-            <div
-              className="absolute top-1.5 left-6 right-6 h-10 rounded-full opacity-80 pointer-events-none"
-              style={{
-                background:
-                  'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%)',
-              }}
-            />
-
-            {/* Futuristic Chest Plate & ARC Reactor Core */}
-            <div className="relative mt-3 flex flex-col items-center">
-              {/* Outer Reactor Bezel Ring */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-b from-slate-300 via-slate-100 to-slate-400 p-1 shadow-inner flex items-center justify-center border border-slate-300">
-                {/* Glowing Blue AI Core Reactor */}
-                <div className="relative w-full h-full rounded-full bg-[#0a1120] flex items-center justify-center overflow-hidden shadow-[inset_0_0_10px_#00d4ff]">
-                  {/* Rotating / Pulsing Core Glow */}
-                  <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-[#0047ba] via-[#00d4ff] to-[#70e5ff] animate-pulse opacity-90 shadow-[0_0_15px_#00d4ff]" />
-                  {/* Velora V / Lab Emblem Core */}
-                  <div className="relative z-10 text-white font-extrabold text-xs tracking-widest drop-shadow-[0_0_4px_#ffffff]">
-                    V
-                  </div>
-                </div>
-              </div>
-
-              {/* Futuristic Tech Seams / Chest Inscription */}
-              <div className="mt-2 text-[9px] font-mono tracking-widest uppercase text-slate-500 font-semibold flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-[#00d4ff]" />
-                VELORA AI
-                <span className="w-1 h-1 rounded-full bg-[#00d4ff]" />
-              </div>
-            </div>
-
-            {/* Bottom Anti-Gravity Thruster Nozzle */}
-            <div className="relative -mb-2 flex flex-col items-center">
-              <div className="w-14 h-3 rounded-full bg-gradient-to-r from-slate-600 via-slate-400 to-slate-600 border border-slate-400" />
-              {/* Blue Ion Plasma Exhaust Field */}
-              <div
-                className="w-16 h-4 -mt-1 rounded-full opacity-90 blur-[2px] animate-pulse"
-                style={{
-                  background:
-                    'radial-gradient(ellipse at center, #00f0ff 0%, #0066ff 60%, transparent 100%)',
-                  boxShadow: '0 4px 18px #00d4ff',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================== */}
-        {/* SOFT NATURAL GROUND SHADOW (No Card/Box/Frame)             */}
-        {/* ========================================================== */}
-        <div
-          ref={shadowRef}
-          className="absolute -bottom-7 w-44 sm:w-52 h-7 rounded-[100%] will-change-transform pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(0, 71, 186, 0.28) 0%, rgba(15, 23, 42, 0.16) 40%, transparent 75%)',
-            filter: 'blur(7px)',
-          }}
-          aria-hidden="true"
-        />
-      </div>
-    </div>
+    />
   );
 }
