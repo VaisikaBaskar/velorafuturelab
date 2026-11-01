@@ -34,7 +34,7 @@ export default function RobotMascot() {
     container.appendChild(renderer.domElement);
 
     // ==============================================================
-    // 2. LIGHTING RIG (Matching reference studio lighting)
+    // 2. STUDIO LIGHTING RIG
     // ==============================================================
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
     scene.add(ambientLight);
@@ -63,16 +63,15 @@ export default function RobotMascot() {
     const planeW = 2.68;
     const planeH = 2.58;
 
-    // Exact neck center calculated from reference artwork
-    // pixel_x = 465 / 1024 => u = 0.4541
-    // pixel_y = 415 / 987  => v = 0.5795
-    const neckX = (0.4541 - 0.5) * planeW; // ~ -0.123
-    const neckY = (0.5795 - 0.5) * planeH; // ~ +0.205
+    // Corrected Neck Center (Aligned directly above torso center x=498)
+    // pixel_x = 498 / 1024 => u = 0.4863
+    // pixel_y = 432 / 987  => v = 0.5623
+    const neckX = (0.4863 - 0.5) * planeW; // ~ -0.0366 (centred symmetrically)
+    const neckY = (0.5623 - 0.5) * planeH; // ~ +0.1607 (centred at neck collar)
 
-    // Local eye coordinates relative to neck pivot
-    // eye_center = (485, 245)
-    const eyesX = (485 / 1024 - 0.5) * planeW;
-    const eyesY = ((987 - 245) / 987 - 0.5) * planeH;
+    // Local eye coordinates relative to neck pivot for level head
+    const eyesX = (553 / 1024 - 0.5) * planeW;
+    const eyesY = ((987 - 265) / 987 - 0.5) * planeH;
     const localEyeX = eyesX - neckX;
     const localEyeY = eyesY - neckY;
 
@@ -95,7 +94,6 @@ export default function RobotMascot() {
         const dy = (y - centerY) / radY;
         const d2 = dx * dx + dy * dy;
         if (d2 < 1.0) {
-          // Smooth cosine dome curve for 3D helmet/torso volume
           const zDisp = Math.cos(d2 * Math.PI * 0.5) * bulge;
           pos.setZ(i, zDisp);
         }
@@ -108,7 +106,7 @@ export default function RobotMascot() {
     const bodyGroup = new THREE.Group();
     robotGroup.add(bodyGroup);
 
-    const bodyGeo = createCurvedPlane(planeW, planeH, 0.12, 0.05, -0.25, 1.2, 0.9);
+    const bodyGeo = createCurvedPlane(planeW, planeH, 0.12, 0.0, -0.25, 1.2, 0.9);
     const bodyTexture = textureLoader.load('/images/robot/robot-body.png');
     bodyTexture.colorSpace = THREE.SRGBColorSpace;
     bodyTexture.generateMipmaps = true;
@@ -125,16 +123,18 @@ export default function RobotMascot() {
     bodyMesh.position.set(0, 0, 0);
     bodyGroup.add(bodyMesh);
 
-    // --- HEAD GROUP WITH NECK PIVOT (Entire Head Shell, Face, Eyes, Headphones) ---
-    // The HeadPivot is placed EXACTLY at the neck coordinate
+    // --- HEAD GROUP WITH CORRECTED UPRIGHT & CENTRED NECK PIVOT ---
+    // The HeadPivot is placed at the true centre of the neck connection
     const headPivot = new THREE.Group();
     headPivot.position.set(neckX, neckY, 0.04);
+    // Neutral rotation is perfectly level (0, 0, 0)
+    headPivot.rotation.set(0, 0, 0);
     robotGroup.add(headPivot);
 
     const headGroup = new THREE.Group();
     headPivot.add(headGroup);
 
-    // Head curved plane centered around helmet
+    // Head curved plane centered symmetrically around the upright helmet
     const headGeo = createCurvedPlane(planeW, planeH, 0.22, neckX + localEyeX, neckY + localEyeY, 0.75, 0.6);
     const headTexture = textureLoader.load('/images/robot/robot-head.png');
     headTexture.colorSpace = THREE.SRGBColorSpace;
@@ -149,7 +149,7 @@ export default function RobotMascot() {
       side: THREE.DoubleSide,
     });
     const headMesh = new THREE.Mesh(headGeo, headMat);
-    // Offset mesh so rotation happens exactly around the neck pivot
+    // Offset mesh so rotation happens exactly around the centred neck pivot
     headMesh.position.set(-neckX, -neckY, 0);
     headGroup.add(headMesh);
 
@@ -203,9 +203,9 @@ export default function RobotMascot() {
     // ==============================================================
     // 5. FULL-HEAD CURSOR TRACKING LOGIC
     // ==============================================================
-    // Target rotations for HeadPivot
-    let targetYaw = 0;   // Left-Right (-32° to +32°)
-    let targetPitch = 0; // Up-Down (-20° to +20°)
+    // Offsets from corrected neutral rotation (0, 0, 0)
+    let targetYaw = 0;   // Left-Right (-30° to +30°)
+    let targetPitch = 0; // Up-Down (-18° to +18°)
     let targetRoll = 0;  // Subtle natural roll
     let isTracking = false;
     let lastMoveTime = performance.now();
@@ -224,14 +224,14 @@ export default function RobotMascot() {
 
       // MOUSE LEFT -> HEAD TURNS LEFT (negative yaw)
       // MOUSE RIGHT -> HEAD TURNS RIGHT (positive yaw)
-      targetYaw = clampedX * 0.52; // ~30 degrees
+      targetYaw = clampedX * 0.48; // ~28 degrees
 
       // MOUSE UP -> HEAD TILTS UP (negative pitch)
       // MOUSE DOWN -> HEAD TILTS DOWN (positive pitch)
-      targetPitch = clampedY * 0.35; // ~20 degrees
+      targetPitch = clampedY * 0.32; // ~18 degrees
 
       // Subtle natural companion roll on diagonal turns
-      targetRoll = -clampedX * 0.09;
+      targetRoll = -clampedX * 0.07;
 
       isTracking = true;
       lastMoveTime = performance.now();
@@ -265,21 +265,21 @@ export default function RobotMascot() {
       animId = requestAnimationFrame(animate);
       const time = clock.getElapsedTime();
 
-      // Check if mouse stopped moving / left -> smoothly return to neutral + gentle idle look
+      // Check if mouse stopped moving / left -> smoothly return to corrected upright neutral position
       const timeSinceMove = performance.now() - lastMoveTime;
       if (!isTracking || timeSinceMove > 2200) {
-        // Idle wander: friendly inquisitive head motions
-        const idleYaw = Math.sin(time * 0.7) * 0.08 + Math.cos(time * 0.35) * 0.04;
-        const idlePitch = Math.sin(time * 0.9) * 0.05;
-        const idleRoll = -idleYaw * 0.12;
+        // Idle wander: subtle friendly micro-movement around upright neutral
+        const idleYaw = Math.sin(time * 0.7) * 0.04;
+        const idlePitch = Math.sin(time * 0.9) * 0.025;
+        const idleRoll = -idleYaw * 0.08;
 
-        targetYaw = THREE.MathUtils.lerp(targetYaw, idleYaw, 0.03);
-        targetPitch = THREE.MathUtils.lerp(targetPitch, idlePitch, 0.03);
-        targetRoll = THREE.MathUtils.lerp(targetRoll, idleRoll, 0.03);
+        targetYaw = THREE.MathUtils.lerp(targetYaw, idleYaw, 0.04);
+        targetPitch = THREE.MathUtils.lerp(targetPitch, idlePitch, 0.04);
+        targetRoll = THREE.MathUtils.lerp(targetRoll, idleRoll, 0.04);
       }
 
       // --- SMOOTH FULL-HEAD ROTATION INTERPOLATION ---
-      // Rotate the HeadPivot around the neck
+      // Rotate the HeadPivot cleanly around the centered neck connection
       headPivot.rotation.y = THREE.MathUtils.lerp(headPivot.rotation.y, targetYaw, 0.08);
       headPivot.rotation.x = THREE.MathUtils.lerp(headPivot.rotation.x, targetPitch, 0.08);
       headPivot.rotation.z = THREE.MathUtils.lerp(headPivot.rotation.z, targetRoll, 0.08);
@@ -287,7 +287,7 @@ export default function RobotMascot() {
       // --- ROBOT BODY IDLE BEHAVIOR ---
       // Body stays stationary per user specification, with only gentle breathing suspension
       robotGroup.position.y = -0.06 + Math.sin(time * 1.6) * 0.022;
-      robotGroup.rotation.z = Math.sin(time * 0.8) * 0.004;
+      robotGroup.rotation.z = Math.sin(time * 0.8) * 0.003;
 
       // Dynamic Eye Glow Pulse (Natural LED breathing)
       eyePointLight.intensity = 2.0 + Math.sin(time * 3.2) * 0.35;
