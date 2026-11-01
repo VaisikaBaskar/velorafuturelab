@@ -303,46 +303,145 @@ export default function RobotMascot() {
     headShell.receiveShadow = true;
     headGroup.add(headShell);
 
-    // Black Glossy Face Display (Inset front curved visor)
-    const faceDisplayGeo = new THREE.SphereGeometry(0.64, 40, 32);
-    faceDisplayGeo.scale(0.92, 0.72, 0.42);
-    const faceDisplay = new THREE.Mesh(faceDisplayGeo, blackVisorMat);
-    faceDisplay.position.set(0, 0.48, 0.38);
+    // --------------------------------------------------------------
+    // 4C-1. LARGE ROUNDED RECTANGULAR BLACK GLOSSY DIGITAL FACE DISPLAY
+    // --------------------------------------------------------------
+    // Outer Rounded Rectangular Bezel Frame
+    const createRoundedRectShape = (w: number, h: number, r: number) => {
+      const s = new THREE.Shape();
+      s.moveTo(-w / 2 + r, -h / 2);
+      s.lineTo(w / 2 - r, -h / 2);
+      s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r);
+      s.lineTo(w / 2, h / 2 - r);
+      s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+      s.lineTo(-w / 2 + r, h / 2);
+      s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r);
+      s.lineTo(-w / 2, -h / 2 + r);
+      s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+      return s;
+    };
+
+    // Bezel Rim Mesh
+    const bezelShape = createRoundedRectShape(1.12, 0.74, 0.28);
+    const bezelGeo = new THREE.ExtrudeGeometry(bezelShape, {
+      depth: 0.06,
+      bevelEnabled: true,
+      bevelSegments: 6,
+      steps: 1,
+      bevelSize: 0.025,
+      bevelThickness: 0.025,
+    });
+    const bezelMat = new THREE.MeshStandardMaterial({
+      color: 0x090f1d,
+      metalness: 0.8,
+      roughness: 0.25,
+    });
+    const faceBezel = new THREE.Mesh(bezelGeo, bezelMat);
+    faceBezel.position.set(0, 0.46, 0.68);
+    headGroup.add(faceBezel);
+
+    // Inner Black Glossy Screen
+    const screenShape = createRoundedRectShape(1.06, 0.68, 0.25);
+    const screenGeo = new THREE.ExtrudeGeometry(screenShape, {
+      depth: 0.03,
+      bevelEnabled: true,
+      bevelSegments: 4,
+      steps: 1,
+      bevelSize: 0.015,
+      bevelThickness: 0.015,
+    });
+    const screenMat = new THREE.MeshPhysicalMaterial({
+      color: 0x020408,
+      roughness: 0.04,
+      metalness: 0.15,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.02,
+      reflectivity: 0.95,
+    });
+    const faceDisplay = new THREE.Mesh(screenGeo, screenMat);
+    faceDisplay.position.set(0, 0.46, 0.73);
     faceDisplay.receiveShadow = true;
     headGroup.add(faceDisplay);
 
-    // Animated Glowing Cyan Eyes
+    // Diagonal Glass Specular Sheen Stripe across Visor
+    const sheenShape = new THREE.Shape();
+    sheenShape.moveTo(-0.45, -0.28);
+    sheenShape.lineTo(-0.15, -0.28);
+    sheenShape.lineTo(0.35, 0.28);
+    sheenShape.lineTo(0.05, 0.28);
+    sheenShape.closePath();
+    const sheenGeo = new THREE.ShapeGeometry(sheenShape);
+    const sheenMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.07,
+      depthWrite: false,
+    });
+    const sheenMesh = new THREE.Mesh(sheenGeo, sheenMat);
+    sheenMesh.position.set(0, 0.46, 0.765);
+    headGroup.add(sheenMesh);
+
+    // --------------------------------------------------------------
+    // 4C-2. GLOWING CYAN / ELECTRIC-BLUE LED EYES
+    // --------------------------------------------------------------
     const leftEyeGroup = new THREE.Group();
     const rightEyeGroup = new THREE.Group();
 
-    const createEyeMesh = () => {
-      // Rounded pill / capsule eye
-      const eyeGeo = new THREE.CapsuleGeometry(0.075, 0.11, 16, 24);
-      eyeGeo.scale(1.0, 1.0, 0.3);
-      const eyeMesh = new THREE.Mesh(eyeGeo, cyanEyeMat);
-      return eyeMesh;
-    };
+    // Eye Core Mesh (smooth curved capsule LED style)
+    const eyeCoreGeo = new THREE.CapsuleGeometry(0.065, 0.13, 16, 24);
+    eyeCoreGeo.scale(1.0, 1.0, 0.3);
 
-    const leftEye = createEyeMesh();
-    leftEyeGroup.position.set(-0.21, 0.52, 0.65);
-    leftEyeGroup.add(leftEye);
-    headGroup.add(leftEyeGroup);
+    const eyeCoreMat = new THREE.MeshBasicMaterial({
+      color: 0x00f5ff,
+    });
 
-    const rightEye = createEyeMesh();
-    rightEyeGroup.position.set(0.21, 0.52, 0.65);
-    rightEyeGroup.add(rightEye);
-    headGroup.add(rightEyeGroup);
+    // Eye Outer Neon Glow Halo
+    const eyeGlowGeo = new THREE.CapsuleGeometry(0.09, 0.15, 16, 24);
+    eyeGlowGeo.scale(1.0, 1.0, 0.2);
+    const eyeGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x00d4ff,
+      transparent: true,
+      opacity: 0.38,
+      depthWrite: false,
+    });
 
-    // Cute Small Eye Pupils / Inner Specular Highlights
-    const pupilGeo = new THREE.CircleGeometry(0.025, 16);
+    // Left Eye Assembly
+    const leftEyeMesh = new THREE.Mesh(eyeCoreGeo, eyeCoreMat);
+    const leftEyeGlow = new THREE.Mesh(eyeGlowGeo, eyeGlowMat);
+    leftEyeGlow.position.z = -0.01;
+    leftEyeGroup.add(leftEyeGlow);
+    leftEyeGroup.add(leftEyeMesh);
+
+    // Left Pupil Specular Catchlight
+    const pupilGeo = new THREE.CircleGeometry(0.024, 16);
     const pupilMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const leftPupil = new THREE.Mesh(pupilGeo, pupilMat);
-    leftPupil.position.set(-0.015, 0.045, 0.02);
+    leftPupil.position.set(-0.016, 0.045, 0.035);
     leftEyeGroup.add(leftPupil);
 
+    leftEyeGroup.position.set(-0.21, 0.48, 0.77);
+    leftEyeGroup.rotation.z = -0.06; // Cute friendly outward tilt
+    headGroup.add(leftEyeGroup);
+
+    // Right Eye Assembly
+    const rightEyeMesh = new THREE.Mesh(eyeCoreGeo, eyeCoreMat);
+    const rightEyeGlow = new THREE.Mesh(eyeGlowGeo, eyeGlowMat);
+    rightEyeGlow.position.z = -0.01;
+    rightEyeGroup.add(rightEyeGlow);
+    rightEyeGroup.add(rightEyeMesh);
+
     const rightPupil = new THREE.Mesh(pupilGeo, pupilMat);
-    rightPupil.position.set(-0.015, 0.045, 0.02);
+    rightPupil.position.set(-0.016, 0.045, 0.035);
     rightEyeGroup.add(rightPupil);
+
+    rightEyeGroup.position.set(0.21, 0.48, 0.77);
+    rightEyeGroup.rotation.z = 0.06; // Cute friendly outward tilt
+    headGroup.add(rightEyeGroup);
+
+    // Soft Blue Neon Point Light (Casts real-time cyan reflection onto face display and rims)
+    const eyePointLight = new THREE.PointLight(0x00f0ff, 1.6, 1.8);
+    eyePointLight.position.set(0, 0.48, 0.95);
+    headGroup.add(eyePointLight);
 
     // Blue Headphones (Left & Right Ear Pods)
     const createHeadphone = (isLeft: boolean) => {
