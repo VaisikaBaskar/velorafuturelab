@@ -16,7 +16,7 @@ import {
   ContactSubmissionListResponse,
   ApiResponse,
 } from '@/types/api';
-import { ApiError } from './client';
+import { ApiError, resolveApiUrl } from './client';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -28,7 +28,7 @@ export async function adminRequest<T>(
   options: RequestInit = {},
   token?: string | null
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = resolveApiUrl(API_BASE_URL, endpoint);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

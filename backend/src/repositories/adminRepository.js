@@ -69,6 +69,26 @@ const adminRepository = {
     const res = await query(sql, [name, email, password_hash, role]);
     return res.rows[0];
   },
+
+  /**
+   * Update admin credentials (email and/or password_hash)
+   * @param {string} id
+   * @param {object} param1
+   * @param {string} param1.email
+   * @param {string} param1.password_hash
+   */
+  async updateCredentials(id, { email, password_hash }) {
+    const sql = `
+      UPDATE public.admins
+      SET email = COALESCE($1, email),
+          password_hash = COALESCE($2, password_hash),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING id, name, email, role, is_active, updated_at;
+    `;
+    const res = await query(sql, [email, password_hash, id]);
+    return res.rows[0] || null;
+  },
 };
 
 module.exports = adminRepository;

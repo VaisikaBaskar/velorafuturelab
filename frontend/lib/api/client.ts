@@ -15,13 +15,35 @@ export class ApiError extends Error {
 }
 
 /**
+ * Resolves a full endpoint URL while gracefully handling:
+ * - base URLs with or without trailing slash (e.g. 'https://api.domain.com/' vs 'https://api.domain.com')
+ * - base URLs with or without '/api' (e.g. 'https://api.domain.com' vs 'https://domain.com/api')
+ * - endpoints with or without leading slash (e.g. '/services' vs 'services')
+ * - endpoints that already include '/api' (prevents duplicate '/api/api')
+ */
+export function resolveApiUrl(baseUrl: string, endpoint: string): string {
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (cleanBase.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    return `${cleanBase}${cleanEndpoint.slice(4)}`;
+  }
+
+  if (!cleanBase.endsWith('/api') && !cleanEndpoint.startsWith('/api/')) {
+    return `${cleanBase}/api${cleanEndpoint}`;
+  }
+
+  return `${cleanBase}${cleanEndpoint}`;
+}
+
+/**
  * Centralized API request helper
  */
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const url = resolveApiUrl(API_BASE_URL, endpoint);
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',

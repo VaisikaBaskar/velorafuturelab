@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import SectionHeader from '@/components/ui/SectionHeader';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
-import HeroCarousel from '@/components/sections/HeroCarousel';
+import RobotMascot from '@/components/sections/RobotMascot';
 import ScrollReveal from '@/components/common/ScrollReveal';
 
 export const dynamic = 'force-dynamic';
@@ -99,9 +99,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Hero Image Carousel */}
-            <div className="lg:col-span-6 relative w-full velora-hero-carousel">
-              <HeroCarousel />
+            {/* Right Column: Floating 3D Robot Mascot */}
+            <div className="lg:col-span-6 relative w-full flex items-center justify-center">
+              <RobotMascot />
             </div>
           </div>
         </div>
