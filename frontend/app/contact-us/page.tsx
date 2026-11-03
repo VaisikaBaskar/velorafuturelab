@@ -96,7 +96,7 @@ export default function ContactUsPage() {
               {/* Top Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/25 text-xs font-bold uppercase tracking-wider text-blue-300 backdrop-blur-md shadow-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Velora Academic Partnerships • 2026–2027</span>
+                <span>Velora Academic Partnerships</span>
               </div>
 
               {/* Main Heading */}
