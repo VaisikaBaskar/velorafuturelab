@@ -129,10 +129,6 @@ export default function ContactUsPage() {
 
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-300 font-medium pt-1">
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>50+ Partner Schools &amp; Campuses</span>
-                  </div>
-                  <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                     <span>Hands-On Robotics &amp; AI Kits</span>
                   </div>
